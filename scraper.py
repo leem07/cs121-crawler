@@ -36,7 +36,7 @@ def is_valid(url):
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()):
             return False
-    
+
         if parsed.netloc not in set(
             ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu","stat.uci.edu"]
             ) and not parsed.netloc.endswith("ics.uci.edu"):
