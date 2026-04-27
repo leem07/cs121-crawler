@@ -48,8 +48,8 @@ def is_valid(url):
         return True
 
     except TypeError:
-        print ("TypeError for ", parsed)
-        raise
+        print ("TypeError for ", url)
+        return False
 
 # Return number of unique pages, number of subdomains
 def update_url_stats(url):
@@ -68,8 +68,8 @@ def update_url_stats(url):
         return url_stats
     
     except TypeError:
-        print ("TypeError for ", parsed)
-        raise
+        print ("TypeError for ", url)
+        return False
 
 def write_url_stats(url):
     pass
