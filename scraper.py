@@ -2,6 +2,9 @@ import re
 from urllib.parse import urlparse
 # from bs4 import BeautifulSoup
 
+url_stats = {}          # {subdomain: [num_unique_pages, {path1: num1, path2, num2}]}
+
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -48,7 +51,35 @@ def is_valid(url):
         print ("TypeError for ", parsed)
         raise
 
+# Return number of unique pages, number of subdomains
+def update_url_stats(url):
+    try:
+        parsed = urlparse(url)
+        subdomain = parsed.netloc
+        path = parsed.path
 
-# if __name__ == "__main__":
-#     url = "https://informatics.ics.uci.edu/graduate-programs-admissions/#researchprograms"
-#     print(is_valid(url))
+        if subdomain in url_stats:
+            if path not in url_stats[subdomain][1]:
+                url_stats[subdomain][1][path] = 0
+                url_stats[subdomain][0] += 1
+        else:
+            url_stats[subdomain] = [0, {path: 0}]
+
+        return url_stats
+    
+    except TypeError:
+        print ("TypeError for ", parsed)
+        raise
+
+def write_url_stats(url):
+    pass
+
+
+if __name__ == "__main__":
+    url1 = "https://informatics.ics.uci.edu/graduate-programs-admissions/#researchprograms"
+    url2 = "https://futurehealth.uci.edu/"
+    url3 = "https://ics.uci.edu/research-areas/"
+    url4 = "https://ics.uci.edu/admissions-information-and-computer-science/graduate-admissions/"
+    url_list = [url1, url2, url3, url4]
+    for url in url_list:
+        print(update_url_stats(url))
