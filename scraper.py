@@ -73,13 +73,3 @@ def update_url_stats(url):
 
 def write_url_stats(url):
     pass
-
-
-if __name__ == "__main__":
-    url1 = "https://informatics.ics.uci.edu/graduate-programs-admissions/#researchprograms"
-    url2 = "https://futurehealth.uci.edu/"
-    url3 = "https://ics.uci.edu/research-areas/"
-    url4 = "https://ics.uci.edu/admissions-information-and-computer-science/graduate-admissions/"
-    url_list = [url1, url2, url3, url4]
-    for url in url_list:
-        print(update_url_stats(url))
