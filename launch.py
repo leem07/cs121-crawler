@@ -13,6 +13,11 @@ def main(config_file, restart):
     config.cache_server = get_cache_server(config, restart)
     crawler = Crawler(config, restart)
     crawler.start()
+    num_unique_pages, longest_page, top_50, subdomain_list = crawler.return_report_stats()
+    print(num_unique_pages)
+    print(longest_page)
+    print(top_50)
+    print(subdomain_list)
 
 
 if __name__ == "__main__":
