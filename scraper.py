@@ -1,10 +1,10 @@
 import re
 from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 unique_pages = set()
-word_frequencies = defaultdict(int)
+word_frequencies = Counter()
 longest_page = {"url": "", "word_count": 0}
 subdomains = defaultdict(set)
 STOP_WORDS = set([
@@ -65,6 +65,10 @@ def extract_next_links(url, resp):
         if len(filtered_words) < 50:
             return extracted_links
 
+        # Track word frequencies
+        word_counter = Counter(filtered_words)
+        word_frequencies.update(word_counter)
+
         # defrag the url
         defragged_url, _ = urldefrag(url)
 
@@ -75,10 +79,6 @@ def extract_next_links(url, resp):
         if len(words) > longest_page["word_count"]:
             longest_page["url"] = defragged_url
             longest_page["word_count"] = len(words)
-
-        # Track word frequencies
-        for word in filtered_words:
-            word_frequencies[word] += 1
 
         # Track subdomains
         parsed = urlparse(defragged_url)
@@ -188,3 +188,6 @@ def update_url_stats(url):
 
 def write_url_stats(url):
     pass
+
+def get_top_50_words():
+    return word_counter.most_common(50)
