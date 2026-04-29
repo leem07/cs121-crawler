@@ -7,12 +7,25 @@ from crawler import Crawler
 
 
 def main(config_file, restart):
+    print("[1] Loading config file...")
+
     cparser = ConfigParser()
     cparser.read(config_file)
+
+    print("[2] Parsing config...")
     config = Config(cparser)
+
+    print("[3] Starting cache server...")
     config.cache_server = get_cache_server(config, restart)
+
+    print("[4] Initializing crawler...")
     crawler = Crawler(config, restart)
+
+    print("[5] Starting crawler...")
     crawler.start()
+
+    print("[6] Crawler finished.")
+    
     num_unique_pages, longest_page, top_50, subdomain_list = crawler.return_report_stats()
     print(num_unique_pages)
     print(longest_page)
