@@ -140,7 +140,7 @@ def is_valid(url):
         ):
             return False
 
-        # grape wiki trap
+        # grape wiki traps
         if netloc == "grape.ics.uci.edu" and parsed.path.lower().startswith("/wiki"):
             return False
 
