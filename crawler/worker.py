@@ -28,6 +28,7 @@ class Worker(Thread):
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
                 f"using cache {self.config.cache_server}.")
+            
             #For report
             scraped_urls, report_stats = scraper.scraper(tbd_url, resp)
             self.crawler.update_stats(report_stats)
