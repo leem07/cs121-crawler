@@ -140,6 +140,28 @@ def is_valid(url):
         ):
             return False
 
+        # grape wiki trap
+        if netloc == "grape.ics.uci.edu" and parsed.path.lower().startswith("/wiki"):
+            return False
+
+        # isg event trap
+        if netloc == "isg.ics.uci.edu" and re.search(r"/event/", parsed.path.lower()):
+            return False
+
+        # doku.php
+        if "doku.php" in parsed.path and parsed.query:
+            return False
+
+        # wics  -- block if query params are present
+        if netloc == "wics.ics.uci.edu" and parsed.query:
+            return False
+
+        # eppstein infinite pictures
+        if "~eppstein/pix" in parsed.path:
+            return False
+
+
+
         # avoid repeated trap segments
         path_segments = [s for s in parsed.path.split("/") if s]
         segment_counts = defaultdict(int)
