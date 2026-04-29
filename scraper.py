@@ -31,7 +31,8 @@ url_stats = {}          # {subdomain: [num_unique_pages, {path1: num1, path2, nu
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    report_stats = [unique_pages, longest_page, word_frequencies, subdomains]
+    return [link for link in links if is_valid(link)], report_stats
 
     # Implementation required.
     # url: the URL that was used to get the page
@@ -188,6 +189,3 @@ def update_url_stats(url):
 
 def write_url_stats(url):
     pass
-
-def get_top_50_words():
-    return word_counter.most_common(50)
