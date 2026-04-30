@@ -3,6 +3,7 @@ from threading import Thread
 from inspect import getsource
 from utils.download import download
 from utils import get_logger
+from urllib.parse import urlsplit
 import scraper
 import time
 
@@ -28,7 +29,29 @@ class Worker(Thread):
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
                 f"using cache {self.config.cache_server}.")
-            
+
+            #Politeness check: added by Luke
+            parsed = urlsplit(tbd_url)
+
+            if not parsed.hostname:
+                continue
+
+            domain = parsed.hostname.lower()
+
+            with self.crawler.timerLock:
+                now = time.monotonic()
+                last = self.crawler.domain_timer.get(domain, 0)
+
+                wait = self.config.delay - (now - last)
+
+                if wait > 0:
+                    self.crawler.domain_timer[domain] = now + wait
+                else:
+                    self.crawler.domain_timer[domain] = now
+
+            if wait > 0:
+                time.sleep(wait)
+
             #For report
             scraped_urls, report_stats = scraper.scraper(tbd_url, resp)
             self.crawler.update_stats(report_stats)
@@ -36,4 +59,7 @@ class Worker(Thread):
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
-            time.sleep(self.config.time_delay)
+
+
+
+            #time.sleep(self.config.time_delay)
