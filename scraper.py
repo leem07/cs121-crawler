@@ -85,7 +85,13 @@ def extract_next_links(url, resp):
         # Track subdomains
         parsed = urlparse(defragged_url)
         netloc = parsed.netloc
-        if netloc.endswith(".ics.uci.edu"):
+        if (netloc.endswith(".ics.uci.edu") or
+                netloc.endswith(".cs.uci.edu") or
+                netloc.endswith(".informatics.uci.edu") or
+                netloc.endswith(".stat.uci.edu")):
+            subdomains[netloc].add(defragged_url)
+
+        elif netloc in {"ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"}:
             subdomains[netloc].add(defragged_url)
 
         # link extraction
