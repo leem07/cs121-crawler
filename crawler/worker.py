@@ -36,6 +36,7 @@ class Worker(Thread):
             if not parsed.hostname:
                 continue
 
+            #Retrieve proper domain
             domain = parsed.hostname.lower()
             if (domain.endswith("ics.uci.edu")):
                 domain = "ics.uci.edu"
@@ -47,16 +48,24 @@ class Worker(Thread):
                 domain = "ics.uci.edu"
 
             with self.crawler.timerLock:
+
+                #Get current time and last time we crawled a new link
                 now = time.monotonic()
                 last = self.crawler.domain_timer.get(domain, 0)
 
+                #Wait = politeness delay - time diff between now and last download
                 wait = self.config.time_delay - (now - last)
+                
+                #Debug print
                 self.logger.info(f"Wait time: {wait}")
+
+                #Update crawl time, if theres a wait we add wait for predicted crawl time
                 if wait > 0:
                     self.crawler.domain_timer[domain] = now + wait
                 else:
                     self.crawler.domain_timer[domain] = now
 
+            #Sleep if there is wait 
             if wait > 0:
                 time.sleep(wait)
 
