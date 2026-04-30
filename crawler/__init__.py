@@ -24,7 +24,7 @@ class Crawler(object):
             return
 
         #Unpack tuple stored from scraper()
-        curr_unique_pages, curr_longest_page, curr_word_count, curr_subdomains = report_stats[0], report_stats[1], report_stats[2], report_stats[3]    
+        curr_unique_pages, curr_longest_page, curr_word_count, curr_subdomains = report_stats
         
         #Update total unique page set
         self.total_unique_pages.update(curr_unique_pages)
@@ -48,7 +48,7 @@ class Crawler(object):
         num_unique_pages = len(self.total_unique_pages)
 
         #Retrieves page name of current longest stored page
-        longest_page = self.longest_page[0]
+        longest_page = self.longest_page["url"]
 
         #Takes top 50 most common words (pre-filtered in scraper)
         top_50 = self.total_word_count.most_common(50)
