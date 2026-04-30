@@ -2,7 +2,6 @@ from utils import get_logger
 from collections import Counter, defaultdict
 from crawler.frontier import Frontier
 from crawler.worker import Worker
-from threading import Lock
 
 class Crawler(object):
     def __init__(self, config, restart, frontier_factory=Frontier, worker_factory=Worker):
@@ -18,13 +17,6 @@ class Crawler(object):
         self.total_unique_pages = set()
         self.total_sub_domains = defaultdict(set)
 
-        #per domain timer and mutex
-        self.domain_timer = defaultdict(float)
-        self.timerLock = Lock()
-        
-        #stats mutex
-        self.statsLock = Lock()
-
     def update_stats(self, report_stats):
         # Err if missing or extra stat field
         if len(report_stats) != 4:
@@ -32,23 +24,22 @@ class Crawler(object):
             return
 
         #Unpack tuple stored from scraper()
-        curr_unique_pages, curr_longest_page, curr_word_count, curr_subdomains = report_stats
+        curr_unique_pages, curr_longest_page, curr_word_count, curr_subdomains = report_stats[0], report_stats[1], report_stats[2], report_stats[3]    
         
-        with self.statsLock:
-            #Update total unique page set
-            self.total_unique_pages.update(curr_unique_pages)
+        #Update total unique page set
+        self.total_unique_pages.update(curr_unique_pages)
 
-            #Update longest page if longer
-            if self.longest_page["word_count"] < curr_longest_page["word_count"]:
-                self.longest_page["url"] = curr_longest_page["url"]
-                self.longest_page["word_count"] = curr_longest_page["word_count"]
+        #Update longest page if longer
+        if self.longest_page["word_count"] < curr_longest_page["word_count"]:
+            self.longest_page["url"] = curr_longest_page["url"]
+            self.longest_page["word_count"] = curr_longest_page["word_count"]
 
-            #Update total word freq Counter
-            self.total_word_count.update(curr_word_count)
+        #Update total word freq Counter
+        self.total_word_count.update(curr_word_count)
 
-            #Update the subdomain list
-            for subdomain, pages in curr_subdomains.items():
-                self.total_sub_domains[subdomain].update(pages)
+        #Update the subdomain list
+        for subdomain, pages in curr_subdomains.items():
+            self.total_sub_domains[subdomain].update(pages)
 
 
 
@@ -57,7 +48,7 @@ class Crawler(object):
         num_unique_pages = len(self.total_unique_pages)
 
         #Retrieves page name of current longest stored page
-        longest_page = self.longest_page["url"]
+        longest_page = self.longest_page[0]
 
         #Takes top 50 most common words (pre-filtered in scraper)
         top_50 = self.total_word_count.most_common(50)

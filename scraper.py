@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, urljoin, urldefrag, urlsplit
+from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 from collections import defaultdict, Counter
 
@@ -159,7 +159,11 @@ def is_valid(url):
         # eppstein infinite pictures
         if "~eppstein/pix" in parsed.path:
             return False
-
+        
+        # gitlab
+        if netloc == "gitlab.ics.uci.edu":
+        # if netloc == "gitlab.ics.uci.edu" and "activity" in parsed.path:
+            return False
 
 
         # avoid repeated trap segments
@@ -210,5 +214,3 @@ def update_url_stats(url):
         print ("TypeError for ", url)
         return False
 
-def write_url_stats(url):
-    pass

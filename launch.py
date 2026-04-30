@@ -14,7 +14,6 @@ def main(config_file, restart):
 
     print("[2] Parsing config...")
     config = Config(cparser)
-    print("Thread count:", config.threads_count)
 
     print("[3] Starting cache server...")
     config.cache_server = get_cache_server(config, restart)
