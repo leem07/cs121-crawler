@@ -37,6 +37,14 @@ class Worker(Thread):
                 continue
 
             domain = parsed.hostname.lower()
+            if (domain.endswith("ics.uci.edu")):
+                domain = "ics.uci.edu"
+            elif (domain.endswith("cs.uci.edu")):
+                domain = "cs.uci.edu"
+            elif (domain.endswith("informatics.uci.edu")):
+                domain = "ics.uci.edu"
+            elif (domain.endswith("stat.uci.edu")):
+                domain = "ics.uci.edu"
 
             with self.crawler.timerLock:
                 now = time.monotonic()
