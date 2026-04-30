@@ -9,7 +9,7 @@ from scraper import is_valid
 
 from urllib.parse import urlsplit
 from collections import defaultdict
-from scraper import is_valid
+
 
 class Frontier(object):
     def __init__(self, config, restart):
@@ -75,7 +75,7 @@ class Frontier(object):
                 self.to_be_downloaded.append(url)
                 self.add_worker_url(url)
                 tbd_count += 1
-            else:
+            elif not urlsplit(url).hostname.endswith("ics.uci.edu"):
                 self.logger.info(f"URL {url} invalid")
         self.logger.info(
             f"Found {tbd_count} urls to be downloaded from {total_count} "
