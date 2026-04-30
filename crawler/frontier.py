@@ -16,7 +16,7 @@ class Frontier(object):
         self.logger = get_logger("FRONTIER")
         self.config = config
         self.to_be_downloaded = list()
-        self.tbd_worker = defaultdict(list())
+        self.tbd_worker = defaultdict(list)
 
         self.tbdLock = Lock()
         self.saveLock = Lock() 
