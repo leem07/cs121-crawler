@@ -11,6 +11,7 @@ import time
 class Worker(Thread):
     def __init__(self, worker_id, config, frontier, crawler):
         self.logger = get_logger(f"Worker-{worker_id}", "Worker")
+        self.id = worker_id
         self.config = config
         self.frontier = frontier
         self.crawler = crawler
@@ -21,7 +22,7 @@ class Worker(Thread):
         
     def run(self):
         while True:
-            tbd_url = self.frontier.get_tbd_url()
+            tbd_url = self.frontier.get_tbd_url(self.id)
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 break

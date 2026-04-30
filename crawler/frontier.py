@@ -7,11 +7,16 @@ from queue import Queue, Empty
 from utils import get_logger, get_urlhash, normalize
 from scraper import is_valid
 
+from urllib.parse import urlsplit
+from collections import defaultdict
+from scraper import is_valid
+
 class Frontier(object):
     def __init__(self, config, restart):
         self.logger = get_logger("FRONTIER")
         self.config = config
         self.to_be_downloaded = list()
+        self.tbd_worker = defaultdict(list())
 
         self.tbdLock = Lock()
         self.saveLock = Lock() 
@@ -38,6 +43,29 @@ class Frontier(object):
                 for url in self.config.seed_urls:
                     self.add_url(url)
 
+    #Helper func, parse domain of url and add to worker queue
+    def add_worker_url(self, url):
+
+        parsed = urlsplit(url)
+
+        if not parsed.hostname:
+            return
+
+        #Retrieve proper domain
+        domain = parsed.hostname.lower()
+        if (domain.endswith("ics.uci.edu")):
+            domain = "ics.uci.edu"
+            self.tbd_worker[0].append(url)
+        elif (domain.endswith("cs.uci.edu")):
+            domain = "cs.uci.edu"
+            self.tbd_worker[1].append(url)
+        elif (domain.endswith("informatics.uci.edu")):
+            domain = "ics.uci.edu"
+            self.tbd_worker[2].append(url)
+        elif (domain.endswith("stat.uci.edu")):
+            domain = "ics.uci.edu"
+            self.tbd_worker[3].append(url)
+
     def _parse_save_file(self):
         ''' This function can be overridden for alternate saving techniques. '''
         total_count = len(self.save)
@@ -50,11 +78,11 @@ class Frontier(object):
             f"Found {tbd_count} urls to be downloaded from {total_count} "
             f"total urls discovered.")
 
-    def get_tbd_url(self):
+    def get_tbd_url(self, wid):
         with self.tbdLock:
-            if not self.to_be_downloaded:
+            if not self.tbd_worker[wid]:
                 return None
-            return self.to_be_downloaded.pop()
+            return self.tbd_worker[wid].pop()
 
     def add_url(self, url):
         url = normalize(url)
@@ -65,6 +93,7 @@ class Frontier(object):
                 self.save.sync()
                 with self.tbdLock:
                     self.to_be_downloaded.append(url)
+                    self.add_worker_url(url)
     
     def mark_url_complete(self, url):
         urlhash = get_urlhash(url)
