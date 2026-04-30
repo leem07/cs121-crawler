@@ -81,16 +81,16 @@ class Frontier(object):
 
     def get_tbd_url(self, wid):
         with self.tbdLock:
-            if not self.tbd_worker:
-                return None
-            elif not self.tbd_worker[wid]:
+            if self.tbd_worker[wid]:
+                return self.tbd_worker[wid].pop()
+            elif self.tbd_worker:
                 for i in range(4):
                     if i == wid:
                         continue
                     if self.tbd_worker[i]:
                         return self.tbd_worker[i].pop()
-                return None #Error, will wait to implement handling for this case
-            return self.tbd_worker[wid].pop()
+            return None
+
 
     def add_url(self, url):
         url = normalize(url)
