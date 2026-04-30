@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, urljoin, urldefrag, urlsplit
+from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 from collections import defaultdict, Counter
 
@@ -116,6 +116,8 @@ def is_valid(url):
 
         if parsed.scheme not in {"http", "https"}:
             return False
+        
+        print("Passed scheme check")
 
         if re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
@@ -124,11 +126,13 @@ def is_valid(url):
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
-            + r"|thmx|mso|arff|rtf|jar|csv"
+            + r"|thmx|mso|arff|rtf|jar|csv|ppsx|img|apk|sql|pps"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$",
             parsed.path.lower()
         ):
             return False
+        
+        print("Passed file check")
 
         netloc = parsed.hostname.lower()
 
@@ -138,30 +142,51 @@ def is_valid(url):
                         "stat.uci.edu")):
             return False
 
+        print("Passed domain check")
+
+        # edge cases
+        if url == "http://www.ics.uci.edu/~shantas/publications/20-secret-sharing-aggregation-TKDE-shantanu":
+            return False
+        if url == "http://www.ics.uci.edu/goodrich":
+            return False
+        if url == "http://www.ics.uci.edu/group":
+            return False
+
         # grape wiki traps
-        if netloc == "grape.ics.uci.edu" and parsed.path.lower().startswith("/wiki"):
+        if netloc == "grape.ics.uci.edu" and path.startswith("/wiki"):
             return False
 
         # isg event trap
-        if netloc == "isg.ics.uci.edu" and re.search(r"/event/", parsed.path.lower()):
+        if netloc == "isg.ics.uci.edu" and re.search(r"/event/", path):
             return False
 
         # doku.php
-        if "doku.php" in parsed.path and parsed.query:
+        if "doku.php" in path:
             return False
 
-        # wics  -- block if query params are present
+        # wics  -- block if query params are present and calendar events
         if netloc == "wics.ics.uci.edu" and parsed.query:
             return False
-
+        
         # eppstein infinite pictures
-        if "~eppstein/pix" in parsed.path:
+        if "~eppstein/pix" in path:
             return False
 
+        # ngs.ics.uci.edu
+        if netloc == "ngs.ics.uci.edu" and "page" in path:
+            return False
+
+        # ~baldig/learning empty pages
+        if netloc == "ics.uci.edu" and "~baldig/learning" in path:
+            return False;
+
+        # dechter htmls
+        if "~dechter" in path and "/r" in path:
+            return False
 
 
         # avoid repeated trap segments
-        path_segments = [s for s in parsed.path.split("/") if s]
+        path_segments = [s for s in path.split("/") if s]
         segment_counts = defaultdict(int)
 
         for seg in path_segments:
@@ -178,8 +203,8 @@ def is_valid(url):
             return False
 
         # avoid calendar/date traps
-        if re.search(r"(calendar|date|event)", parsed.path.lower()):
-            if re.search(r"\d{4}-\d{2}-\d{2}|\d{8}", parsed.query + parsed.path):
+        if re.search(r"(calendar|date|event|events)", path.lower()):
+            if re.search(r"\d{4}-\d{2}(?:-\d{2})?|\d{8}", parsed.query + path):
                 return False
 
         return True
@@ -207,6 +232,3 @@ def update_url_stats(url):
     except TypeError:
         print ("TypeError for ", url)
         return False
-
-def write_url_stats(url):
-    pass
