@@ -78,8 +78,10 @@ class Frontier(object):
         self.logger.info(
             f"Found {tbd_count} urls to be downloaded from {total_count} "
             f"total urls discovered.")
-        self.logger.info(
-            f"Worker Queue {[len(q) for _ , q in self.tbd_worker.items()]}")
+        for i in range(4):
+            self.logger.info(
+                f"{self.tbd_worker[i]} items in domain {i}."
+            )
 
     def get_tbd_url(self, wid):
         with self.tbdLock:
