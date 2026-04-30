@@ -75,6 +75,8 @@ class Frontier(object):
                 self.to_be_downloaded.append(url)
                 self.add_worker_url(url)
                 tbd_count += 1
+            else:
+                self.logger.info(f"URL {url} invalid")
         self.logger.info(
             f"Found {tbd_count} urls to be downloaded from {total_count} "
             f"total urls discovered.")
