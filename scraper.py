@@ -130,14 +130,12 @@ def is_valid(url):
         ):
             return False
 
-        netloc = parsed.netloc.lower()
+        netloc = parsed.hostname.lower()
 
-        if not (
-            netloc == "ics.uci.edu" or netloc.endswith(".ics.uci.edu") or
-            netloc == "cs.uci.edu" or netloc.endswith(".cs.uci.edu") or
-            netloc == "informatics.uci.edu" or netloc.endswith(".informatics.uci.edu") or
-            netloc == "stat.uci.edu" or netloc.endswith(".stat.uci.edu")
-        ):
+        if not netloc.endswith(("ics.uci.edu",
+                        "cs.uci.edu",
+                        "informatics.uci.edu",
+                        "stat.uci.edu")):
             return False
 
         # grape wiki traps

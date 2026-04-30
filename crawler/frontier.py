@@ -80,7 +80,7 @@ class Frontier(object):
             f"total urls discovered.")
         for i in range(4):
             self.logger.info(
-                f"{self.tbd_worker[i]} items in domain {i}."
+                f"{len(self.tbd_worker[i])} items in domain {i}."
             )
 
     def get_tbd_url(self, wid):
