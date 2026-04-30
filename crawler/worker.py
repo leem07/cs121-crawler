@@ -42,7 +42,7 @@ class Worker(Thread):
                 now = time.monotonic()
                 last = self.crawler.domain_timer.get(domain, 0)
 
-                wait = self.config.delay - (now - last)
+                wait = self.config.time_delay - (now - last)
 
                 if wait > 0:
                     self.crawler.domain_timer[domain] = now + wait
