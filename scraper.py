@@ -141,6 +141,14 @@ def is_valid(url):
         ):
             return False
 
+        # edge cases
+        if url == "http://www.ics.uci.edu/~shantas/publications/20-secret-sharing-aggregation-TKDE-shantanu":
+            return False
+        if url == "http://www.ics.uci.edu/goodrich":
+            return False
+        if url == "http://www.ics.uci.edu/group":
+            return False
+
         # grape wiki traps
         if netloc == "grape.ics.uci.edu" and path.startswith("/wiki"):
             return False
