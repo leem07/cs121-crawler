@@ -43,7 +43,7 @@ class Worker(Thread):
                 last = self.crawler.domain_timer.get(domain, 0)
 
                 wait = self.config.time_delay - (now - last)
-
+                self.logger.info(f"Wait time: {wait}")
                 if wait > 0:
                     self.crawler.domain_timer[domain] = now + wait
                 else:
