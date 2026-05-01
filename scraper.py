@@ -114,6 +114,8 @@ def is_valid(url, debug=False):
     try:
         parsed = urlparse(url)
         path = parsed.path
+        if debug:
+            print("Debugging:", url)
         if parsed.scheme not in {"http", "https"}:
             return False
         if debug:
@@ -188,6 +190,7 @@ def is_valid(url, debug=False):
         if "~dechter" in path and "/r" in path:
             return False
 
+        if debug: print("Passed traps")
 
         # avoid repeated trap segments
         path_segments = [s for s in path.split("/") if s]
@@ -198,18 +201,26 @@ def is_valid(url, debug=False):
             if segment_counts[seg] > 2:
                 return False
 
+        if debug: print("Passed repeated traps segments")
+
         # avoid very long URLs
         if len(url) > 500:
             return False
+
+        if debug: print("Passed len url check")
 
         # avoid too many parameters
         if parsed.query.count("&") > 5:
             return False
 
+        if debug: print("Passed parsed query check")
+
         # avoid calendar/date traps
         if re.search(r"(calendar|date|event|events)", path.lower()):
             if re.search(r"\d{4}-\d{2}(?:-\d{2})?|\d{8}", parsed.query + path):
                 return False
+        
+        if debug: print("Passed calendar trap")
 
         return True
 
