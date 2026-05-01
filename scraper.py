@@ -107,7 +107,7 @@ def extract_next_links(url, resp):
     return extracted_links
 
 
-def is_valid(url):
+def is_valid(url, debug=False):
     # Decide whether to crawl this url or not.
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
@@ -116,8 +116,8 @@ def is_valid(url):
         path = parsed.path
         if parsed.scheme not in {"http", "https"}:
             return False
-        
-        print("Passed scheme check")
+        if debug:
+            print("Passed scheme check")
 
         if re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
@@ -132,7 +132,8 @@ def is_valid(url):
         ):
             return False
         
-        print("Passed file check")
+        if debug:
+            print("Passed file check")
 
         netloc = parsed.hostname.lower()
 
@@ -141,8 +142,8 @@ def is_valid(url):
                         "informatics.uci.edu",
                         "stat.uci.edu")):
             return False
-
-        print("Passed domain check")
+        if debug:
+            print("Passed domain check")
 
         # edge cases
         if url == "http://www.ics.uci.edu/~shantas/publications/20-secret-sharing-aggregation-TKDE-shantanu":
@@ -152,6 +153,9 @@ def is_valid(url):
         if url == "http://www.ics.uci.edu/group":
             return False
 
+        if debug:
+            print("Passed edge cases")
+            
         # grape wiki traps
         if netloc == "grape.ics.uci.edu" and path.startswith("/wiki"):
             return False
