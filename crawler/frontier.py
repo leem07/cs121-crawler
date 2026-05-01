@@ -98,12 +98,14 @@ class Frontier(object):
     def add_url(self, url):
         url = normalize(url)
         urlhash = get_urlhash(url)
+        in_save = True
         with self.saveLock:
             if urlhash not in self.save:
                 self.save[urlhash] = (url, False)
                 self.save.sync()
+                in_save = False
         with self.tbdLock:
-            if urlhash not in self.save:
+            if not in_save:
                 self.to_be_downloaded.append(url)
                 self.add_worker_url(url)
        
