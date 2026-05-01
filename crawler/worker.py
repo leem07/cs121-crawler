@@ -56,9 +56,6 @@ class Worker(Thread):
 
                 #Wait = politeness delay - time diff between now and last download
                 wait = self.config.time_delay - (now - last)
-                
-                #Debug print
-                self.logger.info(f"Wait time: {wait}")
 
                 #Update crawl time, if theres a wait we add wait for predicted crawl time
                 if wait > 0:
@@ -77,4 +74,3 @@ class Worker(Thread):
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
-            time.sleep(self.config.time_delay)
