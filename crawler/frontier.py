@@ -8,7 +8,7 @@ from utils import get_logger, get_urlhash, normalize
 from scraper import is_valid
 
 from urllib.parse import urlsplit
-from collections import defaultdict
+from collections import defaultdict, deque
 from scraper import is_valid
 from threading import Lock
 
@@ -17,7 +17,7 @@ class Frontier(object):
         self.logger = get_logger("FRONTIER")
         self.config = config
         self.to_be_downloaded = list()
-        self.tbd_worker = defaultdict(list)
+        self.tbd_worker = defaultdict(deque)
 
         self.tbdLock = Lock()
         self.saveLock = Lock() 
@@ -84,17 +84,20 @@ class Frontier(object):
                 f"{len(self.tbd_worker[i])} items in domain {i}."
             )
 
-    def get_tbd_url(self, wid):
-        with self.tbdLock:
-            if not self.tbd_worker[0] and not self.tbd_worker[1] and not self.tbd_worker[2] and not self.tbd_worker[3]:
-                return None
-            elif not self.tbd_worker[wid]:
-                for i in range(4):
-                    if i == wid:
-                        continue
-                    if self.tbd_worker[i]:
-                        return self.tbd_worker[i].pop()
+def get_tbd_url(self, wid):
+    with self.tbdLock:
+        # try own queue first
+        if self.tbd_worker[wid]:
             return self.tbd_worker[wid].pop()
+
+        # try others
+        for i in range(4):
+            if i == wid:
+                continue
+            if self.tbd_worker[i]:
+                return self.tbd_worker[i].pop()
+
+        return None
 
     def add_url(self, url):
         url = normalize(url)
@@ -109,10 +112,10 @@ class Frontier(object):
     
     def mark_url_complete(self, url):
         urlhash = get_urlhash(url)
-        if urlhash not in self.save:
-            # This should not happen.
-            self.logger.error(
-                f"Completed url {url}, but have not seen it before.")
         with self.saveLock:
+            if urlhash not in self.save:
+                # This should not happen.
+                self.logger.error(
+                    f"Completed url {url}, but have not seen it before.")
             self.save[urlhash] = (url, True)
         self.save.sync()
