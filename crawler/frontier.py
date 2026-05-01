@@ -104,7 +104,7 @@ class Frontier(object):
                 self.save[urlhash] = (url, False)
                 self.save.sync()
                 in_save = False
-        if not in_save:
+        if in_save == False:
             self.to_be_downloaded.append(url)
             self.add_worker_url(url)
        
