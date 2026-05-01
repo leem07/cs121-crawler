@@ -107,7 +107,7 @@ def extract_next_links(url, resp):
     return extracted_links
 
 
-def is_valid(url, debug=False):
+def is_valid(url, debug=False, frontier=None):
     # Decide whether to crawl this url or not.
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
@@ -115,16 +115,18 @@ def is_valid(url, debug=False):
         parsed = urlparse(url)
         path = parsed.path
         #only debug non ics domain
-        
+
         if parsed.netloc.endswith("ics.uci.edu"):
             debug = False
 
         if debug:
             print("Debugging:", url)
+
         if parsed.scheme not in {"http", "https"}:
+            if debug and frontier:
+                frontier.logger.info("Failed scheme")
             return False
-        if debug:
-            print("Passed scheme check")
+        
 
         if re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
@@ -137,10 +139,10 @@ def is_valid(url, debug=False):
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$",
             parsed.path.lower()
         ):
+            if debug and frontier:
+                frontier.logger.info("Failed file")
             return False
         
-        if debug:
-            print("Passed file check")
 
         netloc = parsed.hostname.lower()
 
@@ -148,20 +150,22 @@ def is_valid(url, debug=False):
                         "cs.uci.edu",
                         "informatics.uci.edu",
                         "stat.uci.edu")):
+            if debug and frontier:
+                frontier.logger.info("Failed domain")
             return False
-        if debug:
-            print("Passed domain check")
+
 
         # edge cases
-        if url == "http://www.ics.uci.edu/~shantas/publications/20-secret-sharing-aggregation-TKDE-shantanu":
-            return False
-        if url == "http://www.ics.uci.edu/goodrich":
-            return False
-        if url == "http://www.ics.uci.edu/group":
-            return False
+        blocked = {
+            "http://www.ics.uci.edu/~shantas/publications/20-secret-sharing-aggregation-TKDE-shantanu",
+            "http://www.ics.uci.edu/goodrich",
+            "http://www.ics.uci.edu/group",
+        }
 
-        if debug:
-            print("Passed edge cases")
+        if url in blocked:
+            if debug and frontier:
+                frontier.logger.info("Failed edge case")
+            return False
 
         # grape wiki traps
         if netloc == "grape.ics.uci.edu" and path.startswith("/wiki"):
@@ -195,8 +199,6 @@ def is_valid(url, debug=False):
         if "~dechter" in path and "/r" in path:
             return False
 
-        if debug: print("Passed traps")
-
         # avoid repeated trap segments
         path_segments = [s for s in path.split("/") if s]
         segment_counts = defaultdict(int)
@@ -204,28 +206,33 @@ def is_valid(url, debug=False):
         for seg in path_segments:
             segment_counts[seg] += 1
             if segment_counts[seg] > 2:
+                if debug and frontier:
+                    frontier.logger.info("Failed repeated trap")
                 return False
 
-        if debug: print("Passed repeated traps segments")
 
         # avoid very long URLs
         if len(url) > 500:
+            if debug and frontier:
+                frontier.logger.info("Failed len check")
             return False
 
-        if debug: print("Passed len url check")
+      
 
         # avoid too many parameters
         if parsed.query.count("&") > 5:
+            if debug and frontier:
+                frontier.logger.info("Failed query check")
             return False
 
-        if debug: print("Passed parsed query check")
+        
 
         # avoid calendar/date traps
         if re.search(r"(calendar|date|event|events)", path.lower()):
             if re.search(r"\d{4}-\d{2}(?:-\d{2})?|\d{8}", parsed.query + path):
+                if debug and frontier:
+                    frontier.logger.info("Failed calendar")
                 return False
-        
-        if debug: print("Passed calendar trap")
 
         return True
 

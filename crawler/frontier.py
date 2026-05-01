@@ -71,12 +71,12 @@ class Frontier(object):
         total_count = len(self.save)
         tbd_count = 0
         for url, completed in self.save.values():
-            if not completed and is_valid(url, True):
+            if not completed and is_valid(url, True, self):
                 self.to_be_downloaded.append(url)
                 self.add_worker_url(url)
                 tbd_count += 1
             elif not urlsplit(url).hostname.endswith("ics.uci.edu"):
-                is_valid(url, True)
+                is_valid(url, True, self)
                 self.logger.info(f"URL {url} invalid")
         self.logger.info(
             f"Found {tbd_count} urls to be downloaded from {total_count} "
