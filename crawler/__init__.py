@@ -13,6 +13,7 @@ class Crawler(object):
         self.worker_factory = worker_factory
 
         self.statsLock = Lock()
+        self.timerLock = Lock()
         self.domain_timer = defaultdict(float)
 
         #report statistics
