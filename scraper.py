@@ -114,6 +114,10 @@ def is_valid(url, debug=False):
     try:
         parsed = urlparse(url)
         path = parsed.path
+        #only debug non ics domain
+        if parsed.netloc.endswith("ics.uci.edu"):
+            debug = False
+
         if debug:
             print("Debugging:", url)
         if parsed.scheme not in {"http", "https"}:
