@@ -76,6 +76,7 @@ class Frontier(object):
                 self.add_worker_url(url)
                 tbd_count += 1
             elif not urlsplit(url).hostname.endswith("ics.uci.edu"):
+                is_valid(url, True)
                 self.logger.info(f"URL {url} invalid")
         self.logger.info(
             f"Found {tbd_count} urls to be downloaded from {total_count} "

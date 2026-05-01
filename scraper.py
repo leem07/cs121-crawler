@@ -115,6 +115,7 @@ def is_valid(url, debug=False):
         parsed = urlparse(url)
         path = parsed.path
         #only debug non ics domain
+        
         if parsed.netloc.endswith("ics.uci.edu"):
             debug = False
 
