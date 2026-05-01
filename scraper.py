@@ -113,7 +113,7 @@ def is_valid(url):
     # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
-
+        path = parsed.path
         if parsed.scheme not in {"http", "https"}:
             return False
         
