@@ -27,10 +27,10 @@ def main(config_file, restart):
     print("[6] Crawler finished.")
     
     num_unique_pages, longest_page, top_50, subdomain_list = crawler.return_report_stats()
-    print(num_unique_pages)
-    print(longest_page)
-    print(top_50)
-    print(subdomain_list)
+    print(f"num_unique_pages = {num_unique_pages}")
+    print(f"longest_page = {longest_page}")
+    print(f"top_50 = {top_50}")
+    print(f"subdomain_list = {subdomain_list}")
 
 
 if __name__ == "__main__":

@@ -215,23 +215,3 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", url)
         return False
-
-# Return number of unique pages, number of subdomains
-def update_url_stats(url):
-    try:
-        parsed = urlparse(url)
-        subdomain = parsed.netloc
-        path = parsed.path
-
-        if subdomain in url_stats:
-            if path not in url_stats[subdomain][1]:
-                url_stats[subdomain][1][path] = 0
-                url_stats[subdomain][0] += 1
-        else:
-            url_stats[subdomain] = [0, {path: 0}]
-
-        return url_stats
-    
-    except TypeError:
-        print ("TypeError for ", url)
-        return False
