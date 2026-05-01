@@ -85,6 +85,11 @@ def extract_next_links(url, resp):
         # Track subdomains
         parsed = urlparse(defragged_url)
         netloc = parsed.netloc
+
+        # Get rid of www.
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+
         if (netloc.endswith(".ics.uci.edu") or
                 netloc.endswith(".cs.uci.edu") or
                 netloc.endswith(".informatics.uci.edu") or
@@ -154,6 +159,8 @@ def is_valid(url):
             return False
         if url == "http://www.ics.uci.edu/group":
             return False
+        if url == "https://ics.uci.edu/~dechter/talks/DeepLearn17-Outline":
+            return False
 
         # grape wiki traps
         if netloc == "grape.ics.uci.edu" and path.startswith("/wiki"):
@@ -175,9 +182,13 @@ def is_valid(url):
         if "~eppstein/pix" in path:
             return False
 
-        # ngs.ics.uci.edu
-        if netloc == "ngs.ics.uci.edu" and "page" in path:
+        # chemdb
+        if netloc == "chemdb.ics.uci.edu" or netloc == "cdb.ics.uci.edu":
             return False
+
+        # ngs.ics.uci.edu
+        # if netloc == "ngs.ics.uci.edu" and "author/ramesh/page" in path:
+        #     return False
 
         # ~baldig/learning empty pages
         if netloc == "ics.uci.edu" and "~baldig/learning" in path:
