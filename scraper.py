@@ -30,9 +30,10 @@ url_stats = {}          # {subdomain: [num_unique_pages, {path1: num1, path2, nu
 
 
 def scraper(url, resp):
-    print("Scraping", url)
     links = extract_next_links(url, resp)
     report_stats = [unique_pages, longest_page, word_frequencies, subdomains]
+    if resp == 200:
+        print("Scraping", url)
     return [link for link in links if is_valid(link)], report_stats
 
     # Implementation required.
