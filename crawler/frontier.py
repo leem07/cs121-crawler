@@ -84,20 +84,20 @@ class Frontier(object):
                 f"{len(self.tbd_worker[i])} items in domain {i}."
             )
 
-def get_tbd_url(self, wid):
-    with self.tbdLock:
-        # try own queue first
-        if self.tbd_worker[wid]:
-            return self.tbd_worker[wid].pop()
+    def get_tbd_url(self, wid):
+        with self.tbdLock:
+            # try own queue first
+            if self.tbd_worker[wid]:
+                return self.tbd_worker[wid].pop()
 
-        # try others
-        for i in range(4):
-            if i == wid:
-                continue
-            if self.tbd_worker[i]:
-                return self.tbd_worker[i].pop()
+            # try others
+            for i in range(4):
+                if i == wid:
+                    continue
+                if self.tbd_worker[i]:
+                    return self.tbd_worker[i].pop()
 
-        return None
+            return None
 
     def add_url(self, url):
         url = normalize(url)
