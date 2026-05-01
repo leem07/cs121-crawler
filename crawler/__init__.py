@@ -65,6 +65,7 @@ class Crawler(object):
         return num_unique_pages, longest_page, top_50, subdomain_list
 
     def start_async(self):
+        self.logger.info(f"Thread count: {self.config.threads_count}")
         self.workers = [
             self.worker_factory(worker_id, self.config, self.frontier, self)
             for worker_id in range(self.config.threads_count)]
