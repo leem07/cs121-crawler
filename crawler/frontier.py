@@ -71,7 +71,7 @@ class Frontier(object):
         total_count = len(self.save)
         tbd_count = 0
         for url, completed in self.save.values():
-            if not completed and is_valid(url):
+            if not completed and is_valid(url, True):
                 self.to_be_downloaded.append(url)
                 self.add_worker_url(url)
                 tbd_count += 1

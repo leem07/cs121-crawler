@@ -155,7 +155,7 @@ def is_valid(url, debug=False):
 
         if debug:
             print("Passed edge cases")
-            
+
         # grape wiki traps
         if netloc == "grape.ics.uci.edu" and path.startswith("/wiki"):
             return False
