@@ -103,8 +103,9 @@ class Frontier(object):
                 self.save[urlhash] = (url, False)
                 self.save.sync()
         with self.tbdLock:
-            self.to_be_downloaded.append(url)
-            self.add_worker_url(url)
+            if urlhash not in self.save:
+                self.to_be_downloaded.append(url)
+                self.add_worker_url(url)
        
     
     def mark_url_complete(self, url):
