@@ -2,11 +2,15 @@ import re
 from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
 from collections import defaultdict, Counter
+from threading import Lock
 
+'''
 unique_pages = set()
 word_frequencies = Counter()
 longest_page = {"url": "", "word_count": 0}
 subdomains = defaultdict(set)
+'''
+
 STOP_WORDS = set([
     "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your",
     "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she",
@@ -28,13 +32,79 @@ STOP_WORDS = set([
 
 url_stats = {}          # {subdomain: [num_unique_pages, {path1: num1, path2, num2}]}
 
+_SIMHASH_BITS = 64
+_NEAR_DUPLICATE_THRESH = 3
+
+_simhash_store: list = []
+_simhash_lock = Lock()
+
+
+url_stats = {}          # {subdomain: [num_unique_pages, {path1: num1, path2, num2}]}
+
+_SIMHASH_BITS = 64
+_NEAR_DUPLICATE_THRESH = 3
+
+_simhash_store: list = []
+_simhash_lock = Lock()
+
+
+# Convert the string into a unique 64 bit integer, need it for simhash.
+
+def _fnv1a_64(token: str) -> int:
+    h = 14695981039346656037         # FNV offset basis (64-bit)
+    for byte in token.encode("utf-8"):
+        h ^= byte
+        h = (h * 1099511628211) & 0xFFFFFFFFFFFFFFFF
+    return h
+
+# 64 bit simhash fingerprint from a counter
+
+def _simhash(word_counts: Counter) -> int:
+    v = [0] * _SIMHASH_BITS
+    for word, freq in word_counts.items():  # weight - term frequency
+        h = _fnv1a_64(word)
+        for i in range(_SIMHASH_BITS):
+            if (h >> i) & 1:
+                v[i] += freq
+            else:
+                v[i] -= freq
+    fp = 0
+    for i in range(_SIMHASH_BITS):
+        if v[i] > 0:
+            fp |= (1 << i)
+    return fp
+
+
+def _hamming(a: int, b: int) -> int:
+    x = a ^ b
+    count = 0
+    while x:
+        x &= x - 1  # clear lowest set bit
+        count += 1
+    return count
+
+
+def _is_near_duplicate(word_counts: Counter, url: str) -> bool:
+    fp = _simhash(word_counts)
+    with _simhash_lock:
+        for stored_fp, _ in _simhash_store:
+            if _hamming(fp, stored_fp) <= _NEAR_DUPLICATE_THRESH:
+                return True
+        _simhash_store.append((fp, url))
+    return False
+
 
 def scraper(url, resp):
-    links = extract_next_links(url, resp)
-    report_stats = [unique_pages, longest_page, word_frequencies, subdomains]
-    if resp == 200:
+    # FIX: unpack both links AND report_stats from extract_next_links
+    links, report_stats = extract_next_links(url, resp)
+    # FIX: check resp.status, not resp
+    if resp.status == 200:
         print("Scraping", url)
+    elif 600 <= resp.status <= 699:
+        print(f"Cache server error {resp.status} for {url}: {resp.error}")
     return [link for link in links if is_valid(link)], report_stats
+
+
 
     # Implementation required.
     # url: the URL that was used to get the page
@@ -45,17 +115,18 @@ def scraper(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+
 def extract_next_links(url, resp):
     extracted_links = []
-
+    empty_stats = (set(), {"url": "", "word_count": 0}, Counter(), defaultdict(set))
     # Only process valid responses with content
     if resp.status != 200 or not resp.raw_response or not resp.raw_response.content:
-        return extracted_links
+        return extracted_links, empty_stats
 
     # Avoid very large files (over 10MB)
     content = resp.raw_response.content
     if len(content) > 10 * 1024 * 1024:
-        return extracted_links
+        return extracted_links, empty_stats
 
     try:
         soup = BeautifulSoup(content, "lxml")
@@ -66,27 +137,27 @@ def extract_next_links(url, resp):
 
         # skip low information pages (fewer than 50 words)
         if len(filtered_words) < 50:
-            return extracted_links
+            return extracted_links, empty_stats
 
-        # Track word frequencies
         word_counter = Counter(filtered_words)
-        word_frequencies.update(word_counter)
+
+        # Near-duplicate check using weighted SimHash
+        if _is_near_duplicate(word_counter, url):
+            print(f"Near-duplicate, skipping: {url}")
+            return extracted_links, empty_stats
 
         # defrag the url
         defragged_url, _ = urldefrag(url)
 
-        # Track unique pages
-        unique_pages.add(defragged_url)
+        call_unique_pages = {defragged_url}
 
-        # Track long page
-        if len(words) > longest_page["word_count"]:
-            longest_page["url"] = defragged_url
-            longest_page["word_count"] = len(words)
+        # word count excludes HTML markup — use words (unfiltered) per spec
+        call_longest_page = {"url": defragged_url, "word_count": len(words)}
 
-        # Track subdomains
+        # Subdomain tracking
+        call_subdomains = defaultdict(set)
         parsed = urlparse(defragged_url)
-        netloc = parsed.netloc
-
+        netloc = parsed.netloc.lower()
         # Get rid of www.
         if netloc.startswith("www."):
             netloc = netloc[4:]
@@ -94,24 +165,22 @@ def extract_next_links(url, resp):
         if (netloc.endswith(".ics.uci.edu") or
                 netloc.endswith(".cs.uci.edu") or
                 netloc.endswith(".informatics.uci.edu") or
-                netloc.endswith(".stat.uci.edu")):
-            subdomains[netloc].add(defragged_url)
+                netloc.endswith(".stat.uci.edu") or
+                netloc in {"ics.uci.edu", "cs.uci.edu",
+                           "informatics.uci.edu", "stat.uci.edu"}):
+            call_subdomains[netloc].add(defragged_url)
 
-        elif netloc in {"ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"}:
-            subdomains[netloc].add(defragged_url)
 
-        # link extraction
         for anchor in soup.find_all("a", href=True):
             href = anchor["href"].strip()
-
-            # Resolve relative URLs
             full_url = urljoin(url, href)
-
-            # Remove fragment
             full_url, _ = urldefrag(full_url)
-
             if full_url:
                 extracted_links.append(full_url)
+
+        report_stats = (call_unique_pages, call_longest_page,
+                        word_counter, call_subdomains)
+        return extracted_links, report_stats
 
     except Exception as e:
         print(f"Error processing {url}: {e}")
