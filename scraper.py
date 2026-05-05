@@ -169,7 +169,8 @@ def extract_next_links(url, resp):
                 netloc in {"ics.uci.edu", "cs.uci.edu",
                            "informatics.uci.edu", "stat.uci.edu"}):
             call_subdomains[netloc].add(defragged_url)
-
+        else:
+            return extracted_links, empty_stats #Only crawl links in domain
 
         for anchor in soup.find_all("a", href=True):
             href = anchor["href"].strip()
