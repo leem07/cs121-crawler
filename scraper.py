@@ -100,9 +100,11 @@ def scraper(url, resp):
     # FIX: check resp.status, not resp
     if resp.status == 200:
         print("Scraping", url)
+        return [link for link in links if is_valid(link)], report_stats
     elif 600 <= resp.status <= 699:
         print(f"Cache server error {resp.status} for {url}: {resp.error}")
-    return [link for link in links if is_valid(link)], report_stats
+    else:
+        print(f"Cannot crawl, error {resp.status} for {url}")
 
 
 
